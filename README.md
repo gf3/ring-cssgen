@@ -12,7 +12,7 @@ Installation
 **Soon** you'll be able to add the following to your `project.clj`:
 
 ``` clojure
-  :dependencies [[ring-cssgen "0.0.1"]]
+:dependencies [[ring-cssgen "0.0.1"]]
 ```
 
 
