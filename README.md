@@ -3,16 +3,16 @@ ring-cssgen
 
 [Ring][ring] middleware to automatically compile and regenerate your
 [cssgen][cssgen] stylesheets. Works well with Compojure and Noir. Very much
-sttill an alpha.
+still an alpha.
 
 
 Installation
 ------------
 
-**Soon** you'll be able to add the following to your `project.clj`:
+Add the following to your `project.clj`:
 
 ``` clojure
-:dependencies [[ring-cssgen "0.0.1"]]
+:dependencies [[ring-cssgen "0.0.1-SNAPSHOT"]]
 ```
 
 
