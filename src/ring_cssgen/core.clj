@@ -1,4 +1,5 @@
 (ns ring-cssgen.core
+  ; TODO: Move to ring.middleware.cssgen namespace
   (:use clojure.tools.namespace
         [clojure.string :only [join]]))
 
@@ -13,62 +14,67 @@
 ;           maybe it's something else. just hold whatever it is in an atom, and swap that
 ;           out with something different later
 
-; TODO: Use java.io.File.separatorChar
-(defn- namespace-to-file [ans]
-  (str
-    "/"
-    (join "/"
-          (take-last 2 (-> ans str (.split "\\."))))
-    ".css"))
+; TODO: Update URI → namespace mapping to "/name/space.method". E.g.:
+; /components/login.css → 'components.login/css
+;
+(def ^:dynamic *sep* java.io.File/separatorChar)
 
-; TODO: Refactor to allow composition w/ predicate.
-(defn- find-namespaces-with-prefix
-  "Find all namespaces on the classpath which match a given prefix."
-  [ns-prefix]
-  (for [ans (find-namespaces-on-classpath)
-        :let [name (str ans)
-              ns-prefix (str ns-prefix)]
-        :when (.startsWith name ns-prefix)]
-    ans))
+(defn- ends-match?
+  "Predicate that checks if the ends of two seq-able objects match."
+  [a b]
+  (let [amount (min (count a) (count b))]
+    (= (take-last amount a)
+       (take-last amount b))))
+
+(defn- drop-extension
+  [uri]
+  (if-let [ext (re-find #"\.[a-zA-Z0-9]+$" uri)]
+    (drop-last (count ext) uri)
+    uri))
+
+(defn- uri->namespace
+  [uri]
+  (symbol (apply str (map #(if (= *sep* %) \. %)
+                          (drop-while #(= *sep* %) (drop-extension uri))))))
+
+; TODO: Make this path configurable.
+(defn- uri->path
+  [uri]
+  (apply str
+    (interpose *sep* [(-> (new java.io.File ".") (.getCanonicalPath))
+                      "resources"
+                      "public"
+                      (if (= \/ (first uri))
+                        (apply str (drop 1 uri))
+                        uri)])))
 
 ; TODO: Provide useful error messages when ns can't be reolved.
-(defn generate-css
-  "Generate a css file for a given namespace."
-  [ans]
+(defn- write-cssgen
+  [ans path]
   (require ans)
   (when-let [thens (find-ns ans)]
     (when-let [func (ns-resolve thens '-main)]
-      (spit (str (-> (new java.io.File ".") (.getCanonicalPath)) "/resources/public/" (namespace-to-file ans))
+      ; (println (format "[INFO] Regenerate cssgen stylesheet: %s -> %s" (str ans) path))
+      (spit path
             (func)))))
 
-(defn- handler
-  "Ring middleware handler to compare request URI with registered namespaces for cssgen stylesheets."
-  [namespaces app]
+(defn wrap-cssgen
+  "Create a middleware function that accepts an app handler and a predicate.
+  The predicate will be compared with the request URI; if true the cssgen
+  stylsheet will be regenerated."
+  [handler predicate]
   (fn [req]
-    (doall
-      (for [ans namespaces
-            :let [ans-filename (namespace-to-file ans)
-                  uri (:uri req)]
-            :when (= uri ans-filename)]
-        (do
-          (prn (format "Regenerate CSS: '%s -> %s" ans uri))
-          (generate-css ans))))
-    (app req)))
+    (when (predicate (:uri req))
+      (let [uri-ns (uri->namespace (:uri req))
+            pred (partial ends-match? (str uri-ns))]
+        (when-let [found-ns (filter #(pred (str %)) (find-namespaces-on-classpath))]
+          (write-cssgen (first found-ns) (uri->path (:uri req))))))))
 
-; TODO: Rename to reflect general nature of function.
-; TODO: Refactor to allow composition w/ predicate.
-(defn css-ns
-  "Provide a list of namespaces as symbols matching a given prefix."
-  [ns-prefix]
-  (find-namespaces-with-prefix ns-prefix))
-
-(defn load-css-ns
-  "Register all gencss stylesheets with a ns prefix. These stylsheets will be regenerated per request"
-  [ns-prefix]
-  (let [a (atom (find-namespaces-with-prefix ns-prefix))] [a (partial handler @a)]))
-
-(defn add-css-ns
-  "Add a namespace to the list of cssgen namespaces to watch for."
-  [namespaces ans]
-  (swap! namespaces conj ans))
+(defn css-req?
+  "A useful predicate that checks if a request starts with '/css' and ends with
+  '.css'. For use with `wrap-cssgen`."
+  [req]
+  (and
+    (= (apply str (take 4 (:uri req))) "/css")
+    (= (apply str (take-last 4 (:uri req))) ".css")))
 

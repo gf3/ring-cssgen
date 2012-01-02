@@ -33,21 +33,37 @@ return your css from the `-main` function.
       :color "blue"]))
 ```
 
-Now you can use `load-css-ns` to register your stylesheet namespaces and return
-your middleware function. `load-css-ns` takes a namespace prefix which it will
-use to find all your stylsheet namespaces, it returns a Vector Atom of the
-registered namespaces and the middleware handler function. Wherever you're
-starting your server, you'll need to pass in the middleware function.
+Now you can use the `wrap-cssgen` middleware with your ring application.
+`wrap-cssgen` takes one additional argument, a predicate which receives the
+request and determines whether it is a legal CSS resource. As a conveniece
+a default predicate is included which may be used, `css-req?`. It simply checks
+if the URI begins with `/css` and ends with `.css`.
 
 ``` clojure
 (ns yourapp.server
-  (:use [ring-cssgen.core :only [load-css-ns]]))
+  (:require [ring-cssgen.core :as [cssgen]]))
 
-(let [[css-ns wrap-cssgen] (load-css-ns 'yourapp.css)]
-  ; start your server with wrap-cssgen
-  )
+(def app
+  (-> your-handler
+      (cssgen/wrap-cssgen css-req?)))
 ```
+Now when `/css/design.css` is requested from your server, it will be
+automatically generated and writtent to disk.
+
 Boom! Did you are unimpressed?
+
+
+Caveats
+-------
+
+Requesting a CSS resource runs code, potentially unsafe. Be sure you provide
+a restrictive predicate.
+
+
+Tests/Specs
+-----------
+
+Run the specs with leiningen: `lein spec`
 
 
 License
