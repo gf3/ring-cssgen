@@ -45,7 +45,7 @@ if the URI begins with `/css` and ends with `.css`.
 
 (def app
   (-> your-handler
-      (cssgen/wrap-cssgen css-req?)))
+      (cssgen/wrap-cssgen cssgen/css-req?)))
 ```
 Now when `/css/design.css` is requested from your server, it will be
 automatically generated and writtent to disk.
