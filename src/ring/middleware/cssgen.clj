@@ -63,11 +63,13 @@
   stylsheet will be regenerated."
   [handler predicate]
   (fn [req]
-    (when (predicate (:uri req))
+    (when (predicate req)
       (let [uri-ns (uri->namespace (:uri req))
             pred (partial ends-match? (str uri-ns))]
-        (when-let [found-ns (filter #(pred (str %)) (find-namespaces-on-classpath))]
-          (write-cssgen (first found-ns) (uri->path (:uri req))))))))
+        (let [found-ns (filter #(pred (str %)) (find-namespaces-on-classpath))]
+          (if (< 0 (count found-ns))
+            (write-cssgen (first found-ns) (uri->path (:uri req)))))))
+    (handler req)))
 
 (defn css-req?
   "A useful predicate that checks if a request starts with '/css' and ends with
