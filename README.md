@@ -3,7 +3,7 @@ ring-cssgen
 
 [Ring][ring] middleware to automatically compile and regenerate your
 [cssgen][cssgen] stylesheets. Works well with Compojure and Noir. Very much
-still an alpha.
+still in alpha.
 
 
 Installation
@@ -20,7 +20,7 @@ Usage
 -----
 
 First off, create your cssgen stylesheets and throw them in a common namespace,
-something like `yourapp.css.whatever` works well. Here's the important part, be sure to
+something like `yourapp.css.design` works well. Here's the important part, be sure to
 return your css from the `-main` function.
 
 ``` clojure
@@ -47,10 +47,12 @@ if the URI begins with `/css` and ends with `.css`.
   (-> your-handler
       (cssgen/wrap-cssgen cssgen/css-req?)))
 ```
-Now when `/css/design.css` is requested from your server, it will be
-automatically generated and written to disk.
+When `/css/design.css` is requested from the server, that URI is mapped to the
+`yourapp.css.design` namespace. It will then be automatically generated and
+written to disk.
 
-Boom! Did you are unimpressed?
+Similarly, if `/beer/lol.css` is requested, that URI is mapped to the
+`yourapp.beer.lol` namespace.
 
 
 Caveats
