@@ -20,7 +20,7 @@ Usage
 -----
 
 First off, create your cssgen stylesheets and throw them in a common namespace,
-something like `yourapp.css` works well. Here's the important part, be sure to
+something like `yourapp.css.whatever` works well. Here's the important part, be sure to
 return your css from the `-main` function.
 
 ``` clojure
@@ -41,14 +41,14 @@ if the URI begins with `/css` and ends with `.css`.
 
 ``` clojure
 (ns yourapp.server
-  (:require [ring-cssgen.core :as [cssgen]]))
+  (:require [ring.middleware.cssgen :as [cssgen]]))
 
 (def app
   (-> your-handler
       (cssgen/wrap-cssgen cssgen/css-req?)))
 ```
 Now when `/css/design.css` is requested from your server, it will be
-automatically generated and writtent to disk.
+automatically generated and written to disk.
 
 Boom! Did you are unimpressed?
 

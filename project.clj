@@ -16,6 +16,5 @@
             :distribution :repo
             :comments "same as Clojure"}
 
-  :test-path "spec/"
+  :test-path "spec/")
 
-  :main ring-cssgen.core)

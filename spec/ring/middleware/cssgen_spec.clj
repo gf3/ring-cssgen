@@ -1,9 +1,8 @@
-(ns ring-cssgen.core-spec
+(ns ring.middleware.cssgen-spec
   (:use clojure.test
         clojure.contrib.mock.test-adapter
-        speclj.core
-        ring-cssgen.core)
-  (:require [ring-cssgen.core :as cssgen]))
+        speclj.core)
+  (:require [ring.middleware.cssgen :as cssgen]))
 
 (defn handler [r]
   nil)
@@ -51,10 +50,10 @@
       (it)))
 
   (it "should match a URI beginning with '/css' and ending with '.css'"
-    (should (css-req? *req*)))
+    (should (cssgen/css-req? *req*)))
 
   (it "should not match a URI that doesn't begin with '/css' or end with '.css'"
-    (should-not (css-req? *bad-req*))))
+    (should-not (cssgen/css-req? *bad-req*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Private

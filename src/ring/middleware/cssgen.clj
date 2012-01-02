@@ -1,5 +1,4 @@
-(ns ring-cssgen.core
-  ; TODO: Move to ring.middleware.cssgen namespace
+(ns ring.middleware.cssgen
   (:use clojure.tools.namespace
         [clojure.string :only [join]]))
 
